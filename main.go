@@ -177,6 +177,10 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 				result += fmt.Sprintf("%s: %s\n", item.Main, item.Description)
 			}
 			s.ChannelMessageSend(m.ChannelID, result)
+		//if the command is !remindme <time in seconds> <message>
+		case botPrefix + "remindme":
+			s.ChannelMessageSend(m.ChannelID, "Reminder added!")
+			go s.ChannelMessageSend(m.ChannelID, remindMe(s, m))
 		}
 		// if the message doesn't start with the prefix, then we check if it matches
 		// one of the predefined messages to respond too
@@ -278,3 +282,14 @@ func loadSound(filename string) error {
 		buffer = append(buffer, InBuf)
 	}
 }
+//function for reminder command
+func remindMe(s *discordgo.Session, m *discordgo.MessageCreate) string {
+	var remindMessage = strings.SplitN(m.Content, " ", 3)[2]
+	timer, err := strconv.Atoi(strings.SplitN(m.Content, " ", 3)[1])
+	if err != nil {
+		log.Fatalln(err)
+	}
+	<-time.After(time.Duration(timer) * time.Second)
+	return fmt.Sprintf("%s! %s", m.Author.Mention(), "Reminder: "+remindMessage)
+}
+
